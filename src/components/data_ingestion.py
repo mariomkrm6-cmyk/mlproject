@@ -5,7 +5,8 @@ from src.logger import logging
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from dataclasses import dataclass
-
+from src.components.data_transformation import DataTransformation, DataTransformationConfig
+from src.components.model_trainer import ModelTrainer, ModelTrainerConfig
 @dataclass
 class DataIngestionConfig:
     train_data_path: str = os.path.join('artifacts', "train.csv")
@@ -39,5 +40,17 @@ class DataIngestion:
         except Exception as e:
             raise CustomException(e,sys)
 if __name__=="__main__":
+    # Data Ingestion
     obj=DataIngestion(config=DataIngestionConfig())
-    obj.initiate_data_ingestion()        
+    #save paths
+    train_data_path, test_data_path=obj.initiate_data_ingestion()
+    # Data Transformation
+    transformer=DataTransformation(transformation_config=DataTransformationConfig())
+    # Feed those paths into the transformation method
+    train_arr,test_arr,_=transformer.initiate_data_transformation(train_data_path, test_data_path)
+    # Model _training
+    model_training=ModelTrainer(model_trainer_config=ModelTrainerConfig())
+    #Feed the numerical arrays into the trainer
+    final_score=model_training.initiate_model_trainer(train_arr,test_arr)
+    
+    logging.info(f"The best model's R2 score is: {final_score}")
